@@ -45,8 +45,8 @@ export default function NotesPage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Notes list sidebar */}
-        <div className="w-64 shrink-0 border-r border-slate-200 flex flex-col bg-white">
-          <div className="p-3 border-b border-slate-100">
+        <div className="w-64 shrink-0 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-slate-900">
+          <div className="p-3 border-b border-slate-100 dark:border-slate-800">
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -111,12 +111,12 @@ export default function NotesPage() {
           {activeNote ? (
             <div className="flex flex-col h-full">
               {/* Note title */}
-              <div className="px-8 pt-8 pb-0 bg-white border-b border-slate-100">
+              <div className="px-8 pt-8 pb-0 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800">
                 <input
                   value={activeNote.title}
                   onChange={(e) => updateNote(activeNote.id, { title: e.target.value })}
                   placeholder="Untitled"
-                  className="w-full text-2xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none bg-transparent pb-3"
+                  className="w-full text-2xl font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none bg-transparent pb-3"
                 />
                 <div className="flex items-center gap-3 pb-3 text-xs text-slate-400">
                   <span>Edited {formatDate(activeNote.updated_at)}</span>
@@ -172,8 +172,8 @@ function NoteListItem({
       onClick={onClick}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
       className={cn(
-        'w-full flex items-start gap-2 px-3 py-3 text-left hover:bg-slate-50 transition-colors group relative cursor-pointer',
-        active && 'bg-primary-50',
+        'w-full flex items-start gap-2 px-3 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group relative cursor-pointer',
+        active && 'bg-primary-50 dark:bg-primary-900/30',
       )}
     >
       <FileText size={14} className={cn('mt-0.5 shrink-0', active ? 'text-primary-500' : 'text-slate-400')} />
@@ -202,7 +202,7 @@ function NoteListItem({
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-5 z-50 bg-white border border-slate-200 rounded-lg shadow-lg py-1 min-w-[130px]">
+          <div className="absolute right-0 top-5 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 min-w-[130px]">
             <button
               onClick={(e) => {
                 e.stopPropagation()

@@ -2,48 +2,63 @@
 
 import { useState } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { Priority, TodoStatus } from '@/types'
+import { Priority, Todo, TodoStatus } from '@/types'
 import { X } from 'lucide-react'
 
 interface AddTaskModalProps {
   defaultStatus?: TodoStatus
+  todo?: Todo
   onClose: () => void
 }
 
-export function AddTaskModal({ defaultStatus = 'todo', onClose }: AddTaskModalProps) {
-  const { currentUser, projects, addTodo } = useAppStore()
+export function AddTaskModal({ defaultStatus = 'todo', todo, onClose }: AddTaskModalProps) {
+  const { currentUser, projects, addTodo, updateTodo } = useAppStore()
   const user = currentUser!
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [priority, setPriority] = useState<Priority>('medium')
-  const [projectId, setProjectId] = useState('')
-  const [dueDate, setDueDate] = useState('')
+  const isEdit = !!todo
+
+  const [title, setTitle] = useState(todo?.title ?? '')
+  const [description, setDescription] = useState(todo?.description ?? '')
+  const [priority, setPriority] = useState<Priority>(todo?.priority ?? 'medium')
+  const [projectId, setProjectId] = useState(todo?.project_id ?? '')
+  const [dueDate, setDueDate] = useState(todo?.due_date?.split('T')[0] ?? '')
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
-    addTodo({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      status: defaultStatus,
-      priority,
-      project_id: projectId || undefined,
-      due_date: dueDate || undefined,
-      created_by: user.id,
-      order: 999,
-      labels: [],
-    })
+    if (isEdit) {
+      updateTodo(todo.id, {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        priority,
+        project_id: projectId || undefined,
+        due_date: dueDate || undefined,
+      })
+    } else {
+      addTodo({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        status: defaultStatus,
+        priority,
+        project_id: projectId || undefined,
+        due_date: dueDate || undefined,
+        created_by: user.id,
+        order: 999,
+        labels: [],
+      })
+    }
     onClose()
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-in">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-semibold text-slate-900">New Task</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md animate-fade-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {isEdit ? 'Edit Task' : 'New Task'}
+          </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-600 transition-colors"
           >
             <X size={16} />
           </button>
@@ -72,7 +87,7 @@ export function AddTaskModal({ defaultStatus = 'todo', onClose }: AddTaskModalPr
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-slate-500 mb-1 block">Priority</label>
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Priority</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Priority)}
@@ -85,7 +100,7 @@ export function AddTaskModal({ defaultStatus = 'todo', onClose }: AddTaskModalPr
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-500 mb-1 block">Project</label>
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Project</label>
               <select
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
@@ -102,7 +117,7 @@ export function AddTaskModal({ defaultStatus = 'todo', onClose }: AddTaskModalPr
           </div>
 
           <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Due Date</label>
+            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Due Date</label>
             <input
               type="date"
               value={dueDate}
@@ -116,7 +131,7 @@ export function AddTaskModal({ defaultStatus = 'todo', onClose }: AddTaskModalPr
               Cancel
             </button>
             <button type="submit" className="btn-primary flex-1" disabled={!title.trim()}>
-              Create Task
+              {isEdit ? 'Save Changes' : 'Create Task'}
             </button>
           </div>
         </form>

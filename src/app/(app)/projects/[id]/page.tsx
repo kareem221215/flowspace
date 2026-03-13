@@ -50,7 +50,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               {progress}%
             </span>
           </div>
-          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${progress}%`, backgroundColor: project.color }}
@@ -61,7 +61,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tasks */}
           <div className="lg:col-span-2 card">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700">
               <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <CheckSquare size={15} className="text-primary-500" />
                 Tasks ({projectTodos.length})
@@ -70,7 +70,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 View board
               </Link>
             </div>
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-slate-50 dark:divide-slate-700">
               {projectTodos.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-8">No tasks yet</p>
               ) : (
@@ -78,7 +78,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   const p = PRIORITY_CONFIG[todo.priority]
                   const isDone = todo.status === 'done'
                   return (
-                    <div key={todo.id} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50">
+                    <div key={todo.id} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50">
                       <button
                         onClick={() => updateTodo(todo.id, { status: isDone ? 'todo' : 'done' })}
                         className={cn(
@@ -107,7 +107,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           {/* Notes + Files */}
           <div className="space-y-4">
             <div className="card">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                 <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                   <FileText size={14} className="text-violet-500" />
                   Notes ({projectNotes.length})
@@ -122,7 +122,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 ) : (
                   projectNotes.map((note) => (
                     <Link key={note.id} href="/notes">
-                      <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                      <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                         <FileText size={13} className="text-slate-400 mt-0.5 shrink-0" />
                         <div>
                           <p className="text-xs font-medium text-slate-700">{note.title}</p>
@@ -136,7 +136,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="card">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                 <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                   <FolderOpen size={14} className="text-emerald-500" />
                   Files ({projectFiles.length})
@@ -150,7 +150,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   <p className="text-xs text-slate-400 text-center py-4">No files yet</p>
                 ) : (
                   projectFiles.map((file) => (
-                    <div key={file.id} className="flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-slate-50">
+                    <div key={file.id} className="flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50">
                       <FolderOpen size={13} className="text-slate-400 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-slate-700 truncate">{file.name}</p>
