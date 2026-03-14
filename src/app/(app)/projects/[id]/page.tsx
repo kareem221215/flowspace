@@ -5,13 +5,16 @@ import { Header } from '@/components/layout/Header'
 import { useAppStore } from '@/store/useAppStore'
 import { PRIORITY_CONFIG, formatDate, cn } from '@/lib/utils'
 import Link from 'next/link'
-import { CheckSquare, FileText, FolderOpen, ArrowLeft, CheckCircle2, Circle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CheckSquare, FileText, FolderOpen, ArrowLeft, CheckCircle2, Circle, Plus } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const { projects, todos, notes, files, updateTodo } = useAppStore()
+  const { projects, todos, notes, files, updateTodo, addNote, setActiveNote, currentUser } = useAppStore()
+  const router = useRouter()
   const project = projects.find((p) => p.id === id)
+  const user = currentUser!
 
   if (!project) return notFound()
 
@@ -38,7 +41,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         <div className="card p-5 mb-6">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">Project Progress</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Project Progress</p>
               <p className="text-xs text-slate-400 mt-0.5">
                 {doneTodos} of {projectTodos.length} tasks completed
               </p>
@@ -62,7 +65,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           {/* Tasks */}
           <div className="lg:col-span-2 card">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700">
-              <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <CheckSquare size={15} className="text-primary-500" />
                 Tasks ({projectTodos.length})
               </h2>
@@ -108,28 +111,67 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <div className="space-y-4">
             <div className="card">
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-                <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <FileText size={14} className="text-violet-500" />
                   Notes ({projectNotes.length})
                 </h2>
-                <Link href="/notes" className="text-xs text-primary-600 hover:text-primary-800 font-medium">
-                  View all
-                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      addNote({
+                        title: 'Untitled',
+                        content: JSON.stringify({ type: 'doc', content: [] }),
+                        created_by: user.id,
+                        is_pinned: false,
+                        visibility: 'private',
+                        project_id: id,
+                      })
+                      router.push('/notes')
+                    }}
+                    className="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-800 font-medium"
+                  >
+                    <Plus size={12} /> New
+                  </button>
+                  <span className="text-slate-200 dark:text-slate-700">|</span>
+                  <Link href="/notes" className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-800 font-medium">
+                    View all
+                  </Link>
+                </div>
               </div>
               <div className="p-2 space-y-1">
                 {projectNotes.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-4">No notes yet</p>
+                  <div className="flex flex-col items-center py-5 gap-2">
+                    <p className="text-xs text-slate-400 text-center">No notes yet</p>
+                    <button
+                      onClick={() => {
+                        addNote({
+                          title: 'Untitled',
+                          content: JSON.stringify({ type: 'doc', content: [] }),
+                          created_by: user.id,
+                          is_pinned: false,
+                          visibility: 'private',
+                          project_id: id,
+                        })
+                        router.push('/notes')
+                      }}
+                      className="text-xs btn-primary py-1.5"
+                    >
+                      <Plus size={12} /> New note
+                    </button>
+                  </div>
                 ) : (
                   projectNotes.map((note) => (
-                    <Link key={note.id} href="/notes">
-                      <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                        <FileText size={13} className="text-slate-400 mt-0.5 shrink-0" />
-                        <div>
-                          <p className="text-xs font-medium text-slate-700">{note.title}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">{formatDate(note.updated_at)}</p>
-                        </div>
+                    <button
+                      key={note.id}
+                      onClick={() => { setActiveNote(note.id); router.push('/notes') }}
+                      className="w-full flex items-start gap-2 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
+                    >
+                      <FileText size={13} className="text-violet-400 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{note.title}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{formatDate(note.updated_at)}</p>
                       </div>
-                    </Link>
+                    </button>
                   ))
                 )}
               </div>
@@ -137,7 +179,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
             <div className="card">
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-                <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <FolderOpen size={14} className="text-emerald-500" />
                   Files ({projectFiles.length})
                 </h2>

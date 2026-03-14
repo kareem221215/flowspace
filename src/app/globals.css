@@ -142,6 +142,10 @@
   @apply text-primary-600 dark:text-primary-400 underline hover:text-primary-800 dark:hover:text-primary-300;
 }
 
+.tiptap img {
+  @apply max-w-full rounded-lg my-3 border border-slate-200 dark:border-slate-700;
+}
+
 /* Task list */
 .tiptap ul[data-type="taskList"] {
   @apply list-none pl-0 space-y-1;

@@ -161,19 +161,26 @@ export async function createDM(
   currentUserId: string,
   otherUserId: string,
 ): Promise<Channel | null> {
-  // Create the DM channel
+  // Generate UUID client-side so we can INSERT without .select()
+  // (avoids RLS chicken-and-egg: SELECT policy requires channel_members to exist first)
+  const channelId = crypto.randomUUID()
+
+  const { error } = await supabase
+    .from('channels')
+    .insert({ id: channelId, name: otherUserName, is_dm: true })
+  if (error) return null
+
+  await supabase.from('channel_members').insert([
+    { channel_id: channelId, user_id: currentUserId },
+    { channel_id: channelId, user_id: otherUserId },
+  ])
+
+  // Now channel_members exist so the SELECT policy passes
   const { data: channel } = await supabase
     .from('channels')
-    .insert({ name: otherUserName, is_dm: true })
-    .select()
+    .select('*')
+    .eq('id', channelId)
     .single()
-  if (!channel) return null
-
-  // Add both users as channel members
-  await supabase.from('channel_members').insert([
-    { channel_id: channel.id, user_id: currentUserId },
-    { channel_id: channel.id, user_id: otherUserId },
-  ])
 
   return channel
 }
@@ -287,4 +294,17 @@ export async function uploadFile(
     .single()
 
   return data
+}
+
+export async function uploadPastedImage(
+  supabase: SupabaseClient,
+  file: File,
+  userId: string,
+): Promise<string | null> {
+  const ext = file.type.split('/')[1] ?? 'png'
+  const storagePath = `${userId}/pastes/${Date.now()}.${ext}`
+  const { error } = await supabase.storage.from('files').upload(storagePath, file)
+  if (error) return null
+  const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(storagePath)
+  return publicUrl
 }

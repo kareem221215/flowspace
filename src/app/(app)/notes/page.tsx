@@ -14,25 +14,28 @@ export default function NotesPage() {
   const allUsers = [user, ...team]
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<'all' | 'mine' | 'shared'>('all')
+  const [projectFilter, setProjectFilter] = useState<string>('all')
 
   const filtered = notes.filter((n) => {
     const matchesSearch = search ? n.title.toLowerCase().includes(search.toLowerCase()) : true
     if (!matchesSearch) return false
     if (filter === 'mine') return n.created_by === user.id
     if (filter === 'shared') return n.visibility === 'workspace'
+    if (projectFilter !== 'all') return n.project_id === projectFilter
     return true
   })
 
   const pinned = filtered.filter((n) => n.is_pinned)
   const unpinned = filtered.filter((n) => !n.is_pinned)
 
-  function handleNewNote() {
+  function handleNewNote(projectId?: string) {
     addNote({
       title: 'Untitled',
       content: JSON.stringify({ type: 'doc', content: [] }),
       created_by: user.id,
       is_pinned: false,
       visibility: 'private',
+      project_id: projectId,
     })
   }
 
@@ -69,10 +72,10 @@ export default function NotesPage() {
               {(['all', 'mine', 'shared'] as const).map((f) => (
                 <button
                   key={f}
-                  onClick={() => setFilter(f)}
+                  onClick={() => { setFilter(f); setProjectFilter('all') }}
                   className={cn(
                     'flex-1 text-xs py-1.5 capitalize transition-colors',
-                    filter === f
+                    filter === f && projectFilter === 'all'
                       ? 'bg-primary-600 text-white font-medium'
                       : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800',
                     f !== 'all' && 'border-l border-slate-200 dark:border-slate-700',
@@ -82,6 +85,27 @@ export default function NotesPage() {
                 </button>
               ))}
             </div>
+
+            {/* Project filter */}
+            {projects.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-1">
+                {projects.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => { setProjectFilter(projectFilter === p.id ? 'all' : p.id); setFilter('all') }}
+                    className={cn(
+                      'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-colors',
+                      projectFilter === p.id
+                        ? 'border-transparent text-white'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600',
+                    )}
+                    style={projectFilter === p.id ? { backgroundColor: p.color } : {}}
+                  >
+                    {p.emoji} {p.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -100,6 +124,7 @@ export default function NotesPage() {
                     onClick={() => setActiveNote(note.id)}
                     onPin={() => updateNote(note.id, { is_pinned: false })}
                     onDelete={() => deleteNote(note.id)}
+                    projectName={note.project_id ? projects.find((p) => p.id === note.project_id)?.name : undefined}
                   />
                 ))}
               </div>
@@ -120,6 +145,7 @@ export default function NotesPage() {
                     onClick={() => setActiveNote(note.id)}
                     onPin={() => updateNote(note.id, { is_pinned: true })}
                     onDelete={() => deleteNote(note.id)}
+                    projectName={note.project_id ? projects.find((p) => p.id === note.project_id)?.name : undefined}
                   />
                 ))}
               </div>
@@ -214,7 +240,7 @@ export default function NotesPage() {
 }
 
 function NoteListItem({
-  note, creator, isOwn, active, onClick, onPin, onDelete,
+  note, creator, isOwn, active, onClick, onPin, onDelete, projectName,
 }: {
   note: ReturnType<typeof useAppStore.getState>['notes'][0]
   creator?: { name: string }
@@ -223,6 +249,7 @@ function NoteListItem({
   onClick: () => void
   onPin: () => void
   onDelete: () => void
+  projectName?: string
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -247,11 +274,14 @@ function NoteListItem({
         <p className={cn('text-xs font-medium truncate', active ? 'text-primary-700 dark:text-primary-300' : 'text-slate-700 dark:text-slate-300')}>
           {note.title || 'Untitled'}
         </p>
-        <div className="flex items-center gap-1.5 mt-0.5">
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
           {!isOwn && creator && (
             <span className="text-xs text-slate-400">{creator.name} ·</span>
           )}
           <span className="text-xs text-slate-400">{formatDate(note.updated_at)}</span>
+          {projectName && (
+            <span className="text-xs text-slate-400 truncate">· {projectName}</span>
+          )}
         </div>
       </div>
 

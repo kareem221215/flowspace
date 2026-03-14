@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { getInitials, cn } from '@/lib/utils'
 import { Hash, Send, Plus, Smile, Paperclip, Trash2, X, MessageSquarePlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { uploadPastedImage } from '@/lib/supabase/queries'
 import toast from 'react-hot-toast'
 
 export default function MessagesPage() {
@@ -56,6 +57,25 @@ export default function MessagesPage() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
+    }
+  }
+
+  async function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const imageItem = Array.from(e.clipboardData.items).find((item) => item.type.startsWith('image/'))
+    if (!imageItem) return
+    e.preventDefault()
+    const file = imageItem.getAsFile()
+    if (!file) return
+    setUploading(true)
+    try {
+      const supabase = createClient()
+      const url = await uploadPastedImage(supabase, file, user.id)
+      if (!url) throw new Error('upload failed')
+      await sendMessage(`![screenshot](${url})`)
+    } catch {
+      toast.error('Failed to upload image')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -320,6 +340,7 @@ export default function MessagesPage() {
 
                     // Render file link messages nicely
                     const fileMatch = msg.content.match(/^📎 \[(.+?)\]\((.+?)\)$/)
+                    const imageMatch = msg.content.match(/^!\[(.+?)\]\((.+?)\)$/)
 
                     return (
                       <div
@@ -360,7 +381,14 @@ export default function MessagesPage() {
                               </span>
                             </div>
                           )}
-                          {fileMatch ? (
+                          {imageMatch ? (
+                            <img
+                              src={imageMatch[2]}
+                              alt={imageMatch[1]}
+                              className="max-w-sm max-h-80 rounded-lg border border-slate-200 dark:border-slate-700 mt-1 cursor-pointer"
+                              onClick={() => window.open(imageMatch[2], '_blank')}
+                            />
+                          ) : fileMatch ? (
                             <a
                               href={fileMatch[2]}
                               target="_blank"
@@ -423,6 +451,7 @@ export default function MessagesPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
               placeholder={uploading ? 'Uploading…' : `Message ${activeChannel?.is_dm ? activeChannel?.name : `#${activeChannel?.name}`}…`}
               rows={1}
               className="flex-1 resize-none text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none bg-transparent py-1 leading-relaxed"

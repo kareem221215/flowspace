@@ -8,8 +8,11 @@ import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import Link from '@tiptap/extension-link'
 import Typography from '@tiptap/extension-typography'
+import { ResizableImage } from './ResizableImage'
 import { useEffect, useCallback } from 'react'
 import { useAppStore } from '@/store/useAppStore'
+import { createClient } from '@/lib/supabase/client'
+import { uploadPastedImage } from '@/lib/supabase/queries'
 import {
   Bold,
   Italic,
@@ -63,7 +66,7 @@ interface NoteEditorProps {
 }
 
 export function NoteEditor({ noteId }: NoteEditorProps) {
-  const { notes, updateNote } = useAppStore()
+  const { notes, updateNote, currentUser } = useAppStore()
   const note = notes.find((n) => n.id === noteId)
 
   const saveContent = useCallback(
@@ -85,12 +88,25 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       TaskItem.configure({ nested: true }),
       Link.configure({ openOnClick: false }),
       Typography,
+      Image.configure({ inline: false }),
     ],
     immediatelyRender: false,
     content: note?.content ? JSON.parse(note.content) : '',
     editorProps: {
       attributes: {
         class: 'tiptap prose max-w-none focus:outline-none px-8 py-6 min-h-[500px]',
+      },
+      handlePaste(view, event) {
+        const imageItem = Array.from(event.clipboardData?.items ?? []).find((i) => i.type.startsWith('image/'))
+        if (!imageItem) return false
+        event.preventDefault()
+        const file = imageItem.getAsFile()
+        if (!file || !currentUser) return true
+        const supabase = createClient()
+        uploadPastedImage(supabase, file, currentUser.id).then((url) => {
+          if (url) view.dispatch(view.state.tr.replaceSelectionWith(view.state.schema.nodes.image.create({ src: url })))
+        })
+        return true
       },
     },
     onUpdate: ({ editor }) => {
