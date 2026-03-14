@@ -96,26 +96,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Supabase config */}
-          <div className="card p-5 border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20">
-            <h2 className="text-sm font-semibold text-slate-900 mb-1 flex items-center gap-2">
-              <Key size={15} className="text-amber-500" />
-              Supabase Connection
-            </h2>
-            <p className="text-xs text-slate-500 mb-3">
-              Add your Supabase credentials to enable real-time sync, auth, and file storage.
-            </p>
-            <div className="space-y-2">
-              <input placeholder="NEXT_PUBLIC_SUPABASE_URL" className="input text-xs font-mono" />
-              <input placeholder="NEXT_PUBLIC_SUPABASE_ANON_KEY" className="input text-xs font-mono" type="password" />
-            </div>
-            <p className="text-xs text-slate-400 mt-2">
-              Add these to your <code className="bg-slate-100 px-1 rounded">.env.local</code> file
-            </p>
-          </div>
-
-          <button className="btn-primary">
-            <Save size={15} /> Save Changes
-          </button>
+          
         </div>
       </div>
     </div>

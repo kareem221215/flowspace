@@ -65,6 +65,7 @@ export const MOCK_TODOS: Todo[] = [
     updated_at: new Date().toISOString(),
     order: 0,
     labels: ['design', 'frontend'],
+    is_private: false,
   },
   {
     id: 'todo-2',
@@ -79,6 +80,7 @@ export const MOCK_TODOS: Todo[] = [
     updated_at: new Date().toISOString(),
     order: 0,
     labels: ['backend', 'security'],
+    is_private: false,
   },
   {
     id: 'todo-3',
@@ -91,6 +93,7 @@ export const MOCK_TODOS: Todo[] = [
     updated_at: new Date().toISOString(),
     order: 0,
     labels: ['docs'],
+    is_private: false,
   },
   {
     id: 'todo-4',
@@ -104,6 +107,7 @@ export const MOCK_TODOS: Todo[] = [
     updated_at: new Date().toISOString(),
     order: 0,
     labels: ['frontend', 'bug'],
+    is_private: false,
   },
   {
     id: 'todo-5',
@@ -117,6 +121,7 @@ export const MOCK_TODOS: Todo[] = [
     updated_at: new Date().toISOString(),
     order: 1,
     labels: ['mobile'],
+    is_private: false,
   },
   {
     id: 'todo-6',
@@ -129,6 +134,7 @@ export const MOCK_TODOS: Todo[] = [
     updated_at: new Date().toISOString(),
     order: 1,
     labels: ['performance'],
+    is_private: false,
   },
 ]
 
@@ -148,6 +154,7 @@ export const MOCK_NOTES: Note[] = [
     created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
     is_pinned: true,
+    visibility: 'workspace',
   },
   {
     id: 'note-2',
@@ -158,6 +165,7 @@ export const MOCK_NOTES: Note[] = [
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     is_pinned: false,
+    visibility: 'workspace',
   },
   {
     id: 'note-3',
@@ -168,6 +176,7 @@ export const MOCK_NOTES: Note[] = [
     created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     is_pinned: false,
+    visibility: 'private',
   },
 ]
 
