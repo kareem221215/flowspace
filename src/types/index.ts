@@ -44,6 +44,7 @@ export interface Todo {
   order: number
   labels?: string[]
   assignee?: User
+  is_private: boolean
 }
 
 export interface Note {
@@ -55,6 +56,7 @@ export interface Note {
   created_at: string
   updated_at: string
   is_pinned: boolean
+  visibility: 'private' | 'workspace'
 }
 
 export interface Channel {
@@ -109,6 +111,9 @@ export interface SharedFile {
   language?: string
   content?: string
   storage_path?: string
+  folder_id?: string
+  folder_name?: string
+  relative_path?: string
 }
 
 export interface Notification {

@@ -86,6 +86,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       Link.configure({ openOnClick: false }),
       Typography,
     ],
+    immediatelyRender: false,
     content: note?.content ? JSON.parse(note.content) : '',
     editorProps: {
       attributes: {

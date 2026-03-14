@@ -54,7 +54,7 @@ export async function getTodos(supabase: SupabaseClient): Promise<Todo[]> {
     .from('todos')
     .select('*')
     .order('order', { ascending: true })
-  return data ?? []
+  return (data ?? []).map((t) => ({ ...t, is_private: t.is_private ?? false }))
 }
 
 export async function createTodo(
@@ -90,7 +90,11 @@ export async function getNotes(supabase: SupabaseClient): Promise<Note[]> {
     .from('notes')
     .select('*')
     .order('updated_at', { ascending: false })
-  return (data ?? []).map((n) => ({ ...n, content: JSON.stringify(n.content) }))
+  return (data ?? []).map((n) => ({
+    ...n,
+    content: JSON.stringify(n.content),
+    visibility: n.visibility ?? 'private',
+  }))
 }
 
 export async function createNote(
@@ -103,10 +107,11 @@ export async function createNote(
       ...note,
       content: JSON.parse(note.content),
       updated_at: new Date().toISOString(),
+      visibility: note.visibility ?? 'private',
     })
     .select()
     .single()
-  return data ? { ...data, content: JSON.stringify(data.content) } : null
+  return data ? { ...data, content: JSON.stringify(data.content), visibility: data.visibility ?? 'private' } : null
 }
 
 export async function updateNote(
@@ -215,14 +220,16 @@ export async function uploadFile(
   file: File,
   userId: string,
   projectId?: string,
+  folderMeta?: { folderId: string; folderName: string; relativePath: string },
 ): Promise<SharedFile | null> {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
   const language = CODE_EXTENSIONS[ext]
   const isCode = !!language
 
-  const storagePath = `${userId}/${Date.now()}-${file.name}`
+  const storagePath = folderMeta
+    ? `${userId}/${folderMeta.folderId}/${folderMeta.relativePath}`
+    : `${userId}/${Date.now()}-${file.name}`
 
-  // Upload to storage
   const { error: uploadError } = await supabase.storage
     .from('files')
     .upload(storagePath, file)
@@ -231,13 +238,11 @@ export async function uploadFile(
 
   const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(storagePath)
 
-  // For code files, read the text content
   let content: string | undefined
   if (isCode && file.size < 500_000) {
     content = await file.text()
   }
 
-  // Save to database
   const { data } = await supabase
     .from('shared_files')
     .insert({
@@ -251,6 +256,9 @@ export async function uploadFile(
       language: language ?? null,
       content: content ?? null,
       storage_path: storagePath,
+      folder_id: folderMeta?.folderId ?? null,
+      folder_name: folderMeta?.folderName ?? null,
+      relative_path: folderMeta?.relativePath ?? null,
     })
     .select()
     .single()

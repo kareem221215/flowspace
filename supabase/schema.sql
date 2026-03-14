@@ -153,6 +153,12 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Authenticated users can view channels" ON public.channels
   FOR SELECT USING (auth.uid() IS NOT NULL);
 
+CREATE POLICY "Authenticated users can create channels" ON public.channels
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Authenticated users can delete channels" ON public.channels
+  FOR DELETE USING (auth.uid() IS NOT NULL);
+
 CREATE POLICY "Authenticated users can view messages" ON public.messages
   FOR SELECT USING (auth.uid() IS NOT NULL);
 
@@ -176,7 +182,8 @@ CREATE TABLE IF NOT EXISTS public.shared_files (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   is_code BOOLEAN DEFAULT FALSE,
   language TEXT,
-  content TEXT
+  content TEXT,
+  storage_path TEXT
 );
 
 ALTER TABLE public.shared_files ENABLE ROW LEVEL SECURITY;
@@ -219,9 +226,18 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.todos;
 
 -- ============================================================
 -- STORAGE
--- Create a bucket for file uploads (run in Supabase dashboard)
 -- ============================================================
--- INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', false);
+INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', true)
+  ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Authenticated users can upload" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'files' AND auth.uid() IS NOT NULL);
+
+CREATE POLICY "Public can view files" ON storage.objects
+  FOR SELECT USING (bucket_id = 'files');
+
+CREATE POLICY "Users can delete own files" ON storage.objects
+  FOR DELETE USING (bucket_id = 'files' AND auth.uid() IS NOT NULL);
 
 -- ============================================================
 -- SEED: Default channels

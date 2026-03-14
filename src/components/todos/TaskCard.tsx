@@ -4,7 +4,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Todo } from '@/types'
 import { PRIORITY_CONFIG, formatDate, getInitials } from '@/lib/utils'
-import { Clock, MoreHorizontal, Trash2, Edit3 } from 'lucide-react'
+import { Clock, MoreHorizontal, Trash2, Edit3, Lock } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -58,6 +58,11 @@ export function TaskCard({ todo, overlay }: TaskCardProps) {
         {/* Priority + Labels */}
         <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
           <span className={`badge ${p.bg} ${p.color}`}>{p.label}</span>
+          {todo.is_private && (
+            <span className="badge bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <Lock size={9} /> Private
+            </span>
+          )}
           {todo.labels?.map((label) => (
             <span key={label} className="badge bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
               {label}

@@ -35,6 +35,7 @@ interface AppState {
   activeProjectId: string | null
   setActiveProject: (id: string | null) => void
   addProject: (project: Omit<Project, 'id' | 'created_at' | 'updated_at' | '_count'>) => Promise<void>
+  deleteProject: (id: string) => Promise<void>
 
   // Todos
   todos: Todo[]
@@ -60,11 +61,13 @@ interface AppState {
   appendMessage: (message: Message) => void
   sendMessage: (content: string) => Promise<void>
   addChannel: (name: string, projectId?: string) => Promise<void>
+  deleteChannel: (id: string) => Promise<void>
 
   // Files
   files: SharedFile[]
   addFile: (file: SharedFile) => void
   deleteFile: (id: string, storagePath?: string) => Promise<void>
+  deleteFiles: (ids: string[]) => Promise<void>
 
   // Notifications
   notifications: Notification[]
@@ -130,6 +133,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     }))
   },
 
+  deleteProject: async (id) => {
+    const prev = get().projects
+    set((s) => ({ projects: s.projects.filter((p) => p.id !== id) }))
+    const supabase = createClient()
+    const { error } = await supabase.from('projects').delete().eq('id', id)
+    if (error) {
+      set({ projects: prev })
+      toast.error('Failed to delete project')
+    }
+  },
+
   // ── Todos ──────────────────────────────────────────────────
   todos: [],
   addTodo: async (todo) => {
@@ -139,6 +153,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: `temp-${generateId()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      is_private: todo.is_private ?? false,
     }
     set((s) => ({ todos: [...s.todos, temp] }))
     const saved = await Q.createTodo(supabase, todo)
@@ -188,6 +203,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: `temp-${generateId()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      visibility: note.visibility ?? 'private',
     }
     set((s) => ({ notes: [temp, ...s.notes], activeNoteId: temp.id }))
     const saved = await Q.createNote(supabase, note)
@@ -260,6 +276,23 @@ export const useAppStore = create<AppState>((set, get) => ({
     const saved = await Q.createChannel(supabase, name, projectId)
     if (saved) set((s) => ({ channels: [...s.channels, { ...saved, unread_count: 0 }] }))
   },
+  deleteChannel: async (id) => {
+    const prev = get().channels
+    const prevActiveId = get().activeChannelId
+    set((s) => {
+      const remaining = s.channels.filter((c) => c.id !== id)
+      return {
+        channels: remaining,
+        activeChannelId: prevActiveId === id ? (remaining[0]?.id ?? '') : prevActiveId,
+      }
+    })
+    const supabase = createClient()
+    const { error } = await supabase.from('channels').delete().eq('id', id)
+    if (error) {
+      set({ channels: prev, activeChannelId: prevActiveId })
+      toast.error('Failed to delete channel')
+    }
+  },
 
   // ── Files ──────────────────────────────────────────────────
   files: [],
@@ -268,6 +301,23 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({ files: s.files.filter((f) => f.id !== id) }))
     const supabase = createClient()
     await Q.deleteSharedFile(supabase, id, storagePath)
+  },
+  deleteFiles: async (ids) => {
+    const prev = get().files
+    const toDelete = get().files.filter((f) => ids.includes(f.id))
+    set((s) => ({ files: s.files.filter((f) => !ids.includes(f.id)) }))
+    const supabase = createClient()
+    const { error } = await supabase.from('shared_files').delete().in('id', ids)
+    if (error) {
+      set({ files: prev })
+      toast.error('Failed to delete files')
+      return
+    }
+    // Remove from storage bucket
+    const storagePaths = toDelete.map((f) => f.storage_path).filter(Boolean) as string[]
+    if (storagePaths.length) {
+      await supabase.storage.from('files').remove(storagePaths)
+    }
   },
 
   // ── Notifications ──────────────────────────────────────────

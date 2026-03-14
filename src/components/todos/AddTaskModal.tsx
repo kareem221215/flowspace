@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { Priority, Todo, TodoStatus } from '@/types'
-import { X } from 'lucide-react'
+import { X, Lock, Globe } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface AddTaskModalProps {
   defaultStatus?: TodoStatus
@@ -21,6 +22,7 @@ export function AddTaskModal({ defaultStatus = 'todo', todo, onClose }: AddTaskM
   const [priority, setPriority] = useState<Priority>(todo?.priority ?? 'medium')
   const [projectId, setProjectId] = useState(todo?.project_id ?? '')
   const [dueDate, setDueDate] = useState(todo?.due_date?.split('T')[0] ?? '')
+  const [isPrivate, setIsPrivate] = useState(todo?.is_private ?? false)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -32,6 +34,7 @@ export function AddTaskModal({ defaultStatus = 'todo', todo, onClose }: AddTaskM
         priority,
         project_id: projectId || undefined,
         due_date: dueDate || undefined,
+        is_private: isPrivate,
       })
     } else {
       addTodo({
@@ -44,6 +47,7 @@ export function AddTaskModal({ defaultStatus = 'todo', todo, onClose }: AddTaskM
         created_by: user.id,
         order: 999,
         labels: [],
+        is_private: isPrivate,
       })
     }
     onClose()
@@ -88,11 +92,7 @@ export function AddTaskModal({ defaultStatus = 'todo', todo, onClose }: AddTaskM
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Priority</label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as Priority)}
-                className="input"
-              >
+              <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)} className="input">
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -101,16 +101,10 @@ export function AddTaskModal({ defaultStatus = 'todo', todo, onClose }: AddTaskM
             </div>
             <div>
               <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Project</label>
-              <select
-                value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-                className="input"
-              >
+              <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="input">
                 <option value="">No project</option>
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.emoji} {p.name}
-                  </option>
+                  <option key={p.id} value={p.id}>{p.emoji} {p.name}</option>
                 ))}
               </select>
             </div>
@@ -118,18 +112,45 @@ export function AddTaskModal({ defaultStatus = 'todo', todo, onClose }: AddTaskM
 
           <div>
             <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Due Date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="input"
-            />
+            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input" />
+          </div>
+
+          {/* Visibility toggle */}
+          <div>
+            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 block">Visibility</label>
+            <div className="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setIsPrivate(false)}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-medium transition-colors',
+                  !isPrivate
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700',
+                )}
+              >
+                <Globe size={13} /> Workspace
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(true)}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-medium transition-colors border-l border-slate-200 dark:border-slate-700',
+                  isPrivate
+                    ? 'bg-slate-700 text-white dark:bg-slate-600'
+                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700',
+                )}
+              >
+                <Lock size={13} /> Only me
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mt-1.5">
+              {isPrivate ? 'Only you can see this task.' : 'Everyone in the workspace can see this task.'}
+            </p>
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="btn-secondary flex-1">
-              Cancel
-            </button>
+            <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
             <button type="submit" className="btn-primary flex-1" disabled={!title.trim()}>
               {isEdit ? 'Save Changes' : 'Create Task'}
             </button>
