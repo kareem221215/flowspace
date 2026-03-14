@@ -7,5 +7,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # NEXT_PUBLIC_* vars are intentionally bundled into client JS by Next.js
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SUPABASE_URL"
 
 # Redirects handled by Next.js middleware — no manual redirects needed
