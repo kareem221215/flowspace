@@ -17,7 +17,7 @@ export default function SettingsPage() {
         <div className="space-y-6">
           {/* Profile */}
           <div className="card p-5">
-            <h2 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
               <Users size={15} className="text-primary-500" />
               Profile
             </h2>
@@ -26,17 +26,17 @@ export default function SettingsPage() {
                 {getInitials(user.name)}
               </div>
               <div>
-                <p className="font-medium text-slate-900">{user.name}</p>
-                <p className="text-sm text-slate-500">{user.email}</p>
+                <p className="font-medium text-slate-900 dark:text-slate-100">{user.name}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-500 mb-1 block">Name</label>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Name</label>
                 <input defaultValue={user.name} className="input" />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-500 mb-1 block">Email</label>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Email</label>
                 <input defaultValue={user.email} className="input" />
               </div>
             </div>
@@ -44,7 +44,7 @@ export default function SettingsPage() {
 
           {/* Notifications */}
           <div className="card p-5">
-            <h2 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
               <Bell size={15} className="text-primary-500" />
               Notifications
             </h2>
@@ -57,12 +57,12 @@ export default function SettingsPage() {
               ].map((item) => (
                 <div key={item.label} className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-slate-800">{item.label}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{item.label}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{item.desc}</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer shrink-0">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-primary-600 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
+                    <div className="w-9 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-primary-600 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
                   </label>
                 </div>
               ))}
@@ -71,12 +71,12 @@ export default function SettingsPage() {
 
           {/* Appearance */}
           <div className="card p-5">
-            <h2 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
               <Palette size={15} className="text-primary-500" />
               Appearance
             </h2>
             <div>
-              <label className="text-xs font-medium text-slate-500 mb-2 block">Theme</label>
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 block">Theme</label>
               <div className="grid grid-cols-3 gap-2">
                 {(['light', 'dark', 'system'] as const).map((t) => (
                   <button

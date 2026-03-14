@@ -155,6 +155,29 @@ export async function createChannel(
   return data
 }
 
+export async function createDM(
+  supabase: SupabaseClient,
+  otherUserName: string,
+  currentUserId: string,
+  otherUserId: string,
+): Promise<Channel | null> {
+  // Create the DM channel
+  const { data: channel } = await supabase
+    .from('channels')
+    .insert({ name: otherUserName, is_dm: true })
+    .select()
+    .single()
+  if (!channel) return null
+
+  // Add both users as channel members
+  await supabase.from('channel_members').insert([
+    { channel_id: channel.id, user_id: currentUserId },
+    { channel_id: channel.id, user_id: otherUserId },
+  ])
+
+  return channel
+}
+
 // ── Messages ─────────────────────────────────────────────────
 export async function getMessages(
   supabase: SupabaseClient,

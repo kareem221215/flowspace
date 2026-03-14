@@ -45,8 +45,8 @@ function ToolbarButton({
       }}
       title={title}
       className={cn(
-        'p-1.5 rounded-md transition-colors text-slate-500 hover:text-slate-700 hover:bg-slate-100',
-        active && 'bg-slate-100 text-primary-600',
+        'p-1.5 rounded-md transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700',
+        active && 'bg-slate-100 dark:bg-slate-700 text-primary-600 dark:text-primary-400',
       )}
     >
       {children}
@@ -55,7 +55,7 @@ function ToolbarButton({
 }
 
 function Divider() {
-  return <div className="w-px h-5 bg-slate-200 mx-1" />
+  return <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
 }
 
 interface NoteEditorProps {
@@ -113,7 +113,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 flex items-center gap-0.5 px-4 py-2 bg-white border-b border-slate-100 flex-wrap">
+      <div className="sticky top-0 z-10 flex items-center gap-0.5 px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex-wrap">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           active={editor.isActive('heading', { level: 1 })}
@@ -217,7 +217,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       </div>
 
       {/* Editor area */}
-      <div className="flex-1 overflow-y-auto bg-white">
+      <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-950">
         <EditorContent editor={editor} />
       </div>
     </div>

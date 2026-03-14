@@ -46,9 +46,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         Q.getFiles(supabase),
       ])
 
-      const user = profile
-        ? { ...profile, email: authUser.email ?? '' }
-        : { id: authUser.id, email: authUser.email ?? '', name: authUser.email ?? 'You', created_at: new Date().toISOString() }
+      // If no profile exists yet (e.g. trigger didn't fire), create one now
+      if (!profile) {
+        const name = (authUser.user_metadata?.name as string | undefined) || authUser.email?.split('@')[0] || 'User'
+        await supabase.from('profiles').upsert({ id: authUser.id, name }, { onConflict: 'id' })
+      }
+
+      const user = {
+        id: authUser.id,
+        email: authUser.email ?? '',
+        name: profile?.name || (authUser.user_metadata?.name as string | undefined) || authUser.email?.split('@')[0] || 'User',
+        avatar_url: profile?.avatar_url,
+        created_at: profile?.created_at ?? new Date().toISOString(),
+      }
 
       // Load messages for first channel
       const firstChannelId = channels[0]?.id

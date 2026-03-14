@@ -62,6 +62,7 @@ interface AppState {
   sendMessage: (content: string) => Promise<void>
   addChannel: (name: string, projectId?: string) => Promise<void>
   deleteChannel: (id: string) => Promise<void>
+  startDM: (otherUserId: string, otherUserName: string) => Promise<void>
 
   // Files
   files: SharedFile[]
@@ -275,6 +276,26 @@ export const useAppStore = create<AppState>((set, get) => ({
     const supabase = createClient()
     const saved = await Q.createChannel(supabase, name, projectId)
     if (saved) set((s) => ({ channels: [...s.channels, { ...saved, unread_count: 0 }] }))
+  },
+  startDM: async (otherUserId, otherUserName) => {
+    const { currentUser, channels } = get()
+    if (!currentUser) return
+    // If DM already exists, just switch to it
+    const existing = channels.find((c) => c.is_dm && c.name === otherUserName)
+    if (existing) {
+      set({ activeChannelId: existing.id })
+      return
+    }
+    const supabase = createClient()
+    const saved = await Q.createDM(supabase, otherUserName, currentUser.id, otherUserId)
+    if (saved) {
+      set((s) => ({
+        channels: [...s.channels, { ...saved, unread_count: 0 }],
+        activeChannelId: saved.id,
+      }))
+    } else {
+      toast.error('Failed to start DM')
+    }
   },
   deleteChannel: async (id) => {
     const prev = get().channels

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Header } from '@/components/layout/Header'
 import { useAppStore } from '@/store/useAppStore'
 import { getInitials, cn } from '@/lib/utils'
-import { Hash, Send, Plus, Smile, Paperclip, Trash2, X } from 'lucide-react'
+import { Hash, Send, Plus, Smile, Paperclip, Trash2, X, MessageSquarePlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
@@ -17,6 +17,7 @@ export default function MessagesPage() {
     sendMessage,
     addChannel,
     deleteChannel,
+    startDM,
     currentUser,
     team,
   } = useAppStore()
@@ -26,6 +27,7 @@ export default function MessagesPage() {
   const [uploading, setUploading] = useState(false)
   const [showNewChannel, setShowNewChannel] = useState(false)
   const [newChannelName, setNewChannelName] = useState('')
+  const [showDMPicker, setShowDMPicker] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -181,34 +183,74 @@ export default function MessagesPage() {
           </div>
 
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 mb-1">
-              Direct Messages
-            </p>
-            {dmChannels.map((ch) => {
-              const initials = getInitials(ch.name)
-              return (
-                <button
-                  key={ch.id}
-                  onClick={() => setActiveChannel(ch.id)}
-                  className={cn(
-                    'flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-left transition-colors',
-                    activeChannelId === ch.id
-                      ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-                  )}
-                >
-                  <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium flex items-center justify-center shrink-0">
-                    {initials}
+            <div className="flex items-center justify-between px-2 mb-1">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Direct Messages</p>
+              <button
+                onClick={() => setShowDMPicker((v) => !v)}
+                className="p-0.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                title="New direct message"
+              >
+                <Plus size={12} />
+              </button>
+            </div>
+
+            {/* DM user picker */}
+            {showDMPicker && (
+              <div className="mx-1 mb-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <p className="text-xs text-slate-400 px-2.5 pt-2 pb-1">Start a conversation with…</p>
+                {team.map((member) => (
+                  <button
+                    key={member.id}
+                    onClick={async () => {
+                      setShowDMPicker(false)
+                      await startDM(member.id, member.name)
+                    }}
+                    className="flex items-center gap-2 w-full px-2.5 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shrink-0">
+                      <span className="text-white text-xs font-medium" style={{ fontSize: '9px' }}>{getInitials(member.name)}</span>
+                    </div>
+                    <span className="text-xs text-slate-700 dark:text-slate-300 truncate">{member.name}</span>
+                  </button>
+                ))}
+                {team.length === 0 && (
+                  <p className="text-xs text-slate-400 px-2.5 pb-2">No teammates yet</p>
+                )}
+              </div>
+            )}
+
+            {dmChannels.map((ch) => (
+              <button
+                key={ch.id}
+                onClick={() => setActiveChannel(ch.id)}
+                className={cn(
+                  'flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-left transition-colors',
+                  activeChannelId === ch.id
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                )}
+              >
+                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shrink-0">
+                  <span className="text-white text-xs font-medium" style={{ fontSize: '9px' }}>{getInitials(ch.name)}</span>
+                </div>
+                <span className="flex-1 text-sm truncate">{ch.name}</span>
+                {(ch.unread_count ?? 0) > 0 && (
+                  <span className="w-4 h-4 bg-primary-600 text-white text-xs font-medium rounded-full flex items-center justify-center shrink-0">
+                    {ch.unread_count}
                   </span>
-                  <span className="flex-1 text-sm truncate">{ch.name}</span>
-                  {(ch.unread_count ?? 0) > 0 && (
-                    <span className="w-4 h-4 bg-primary-600 text-white text-xs font-medium rounded-full flex items-center justify-center shrink-0">
-                      {ch.unread_count}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
+                )}
+              </button>
+            ))}
+
+            {dmChannels.length === 0 && !showDMPicker && (
+              <button
+                onClick={() => setShowDMPicker(true)}
+                className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <MessageSquarePlus size={13} className="shrink-0" />
+                <span className="text-xs">New message</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
